@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: account-service
+  cloud:
+    config:
+      enabled: false
   datasource:
     url: jdbc:h2:mem:account-db
     driver-class-name: org.h2.Driver
@@ -22,4 +25,3 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-

@@ -1,0 +1,26 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: transaction-service
+  datasource:
+    url: jdbc:h2:mem:transaction-db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# Configuration du plafond récupéré depuis le Config Server ou en dur
+bank:
+  transaction:
+    max-amount: 1000

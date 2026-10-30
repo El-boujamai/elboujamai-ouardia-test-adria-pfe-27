@@ -2,6 +2,8 @@ package org.sid.accountservice.entites;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.sid.accountservice.enume.AccountStatus;
+
 import java.util.UUID;
 
 @Entity
@@ -16,6 +18,3 @@ public class Account {
     private double balance;
 }
 
-enum AccountStatus {
-    ACTIVE, BLOCKED
-}
