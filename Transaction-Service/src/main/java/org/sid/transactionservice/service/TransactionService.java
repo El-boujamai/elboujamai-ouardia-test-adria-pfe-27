@@ -15,12 +15,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import static com.netflix.appinfo.AmazonInfo.MetaDataKey.accountId;
-
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class TransactionService {
+
     private final TransactionRepository transactionRepository;
     private final AccountRestClient accountRestClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -58,23 +57,20 @@ public class TransactionService {
 
         Transaction savedTransaction = transactionRepository.save(transaction);
 
-        // 5. Publication de l'événement dans Kafka (Partie F)
-        kafkaTemplate.send("bank.transactions.created", accountId.toString(), savedTransaction);
+        // 5. Construction de l'événement Kafka (Format minimal requis)
+        TransactionEvent event = TransactionEvent.builder()
+                .eventId(UUID.randomUUID())
+                .eventType("TransactionCreated")
+                .transactionId(savedTransaction.getId())
+                .accountId(accountId)
+                .amount(amount)
+                .currency(currency)
+                .occurredAt(Instant.now())
+                .build();
+
+        // 6. Publication dans Kafka en utilisant accountId comme clé du message
+        kafkaTemplate.send("bank.transactions.created", accountId.toString(), event);
 
         return savedTransaction;
     }
-
-    // Construction de l'événement Kafka
-    TransactionEvent event = TransactionEvent.builder()
-            .eventId(UUID.randomUUID())
-            .eventType("TransactionCreated")
-            .transactionId(savedTransaction.getId())
-            .accountId(accountId)
-            .amount(amount)
-            .currency(currency)
-            .occurredAt(Instant.now())
-            .build();
-
-// Publication en utilisant accountId comme clé du message
-kafkaTemplate.send("bank.transactions.created", accountId.toString(), event);
 }
