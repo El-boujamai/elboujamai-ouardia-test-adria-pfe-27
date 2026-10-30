@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.sid.transactionservice.clients.AccountDTO;
 import org.sid.transactionservice.clients.AccountRestClient;
 import org.sid.transactionservice.entites.Transaction;
+import org.sid.transactionservice.event.TransactionEvent;
 import org.sid.transactionservice.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+
+import static com.netflix.appinfo.AmazonInfo.MetaDataKey.accountId;
 
 @Service
 @Transactional
@@ -60,4 +63,18 @@ public class TransactionService {
 
         return savedTransaction;
     }
+
+    // Construction de l'événement Kafka
+    TransactionEvent event = TransactionEvent.builder()
+            .eventId(UUID.randomUUID())
+            .eventType("TransactionCreated")
+            .transactionId(savedTransaction.getId())
+            .accountId(accountId)
+            .amount(amount)
+            .currency(currency)
+            .occurredAt(Instant.now())
+            .build();
+
+// Publication en utilisant accountId comme clé du message
+kafkaTemplate.send("bank.transactions.created", accountId.toString(), event);
 }
